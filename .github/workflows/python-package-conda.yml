@@ -32,4 +32,4 @@ jobs:
       working-directory: .
       run: |
         pwd
-        pytest
+        python -m pytest
