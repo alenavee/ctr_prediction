@@ -19,6 +19,12 @@ from src.features.build_transformer import (
     process_count_features,
 )
 
+from src.models.model_fit_predict import (
+    train_model,
+    predict_model,
+    evaluate_model,
+    serialize_model,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -71,6 +77,26 @@ def train_pipline(config_path: str):
     logger.debug(
         f"val_features:  {val_features.shape} \n {val_features.info()} \n {val_features.nunique()}"
     )
+
+    model = train_model(
+        train_features, train_target, training_pipeline_params.train_params
+    )
+
+    predicted_proba, preds = predict_model(model, val_features)
+    metrics = evaluate_model(predicted_proba, preds, val_target)
+    logger.debug(f"preds/ targets shapes:  {(preds.shape, val_target.shape)}")
+
+    # dump metrics to json
+    with open(training_pipeline_params.metric_path, "w") as metric_file:
+        json.dump(metrics, metric_file)
+    logger.info(f"Metric is {metrics}")
+
+    # serialize model
+    serialize_model(model, training_pipeline_params.output_model_path)
+    serialize_model(
+        ctr_transformer, training_pipeline_params.output_ctr_transformer_path
+    )
+
 
 
 if __name__ == "__main__":
