@@ -1,4 +1,4 @@
-ctr_prediction
+CTR MLOPS pipeline
 ==============================
 
 A short description of the project.
