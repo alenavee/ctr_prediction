@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/631206042186314810/a186113b583f45258ffcd17351c889e5/artifacts
+end_time: 1727091116453
+entry_point_name: ''
+experiment_id: '631206042186314810'
+lifecycle_stage: active
+run_id: a186113b583f45258ffcd17351c889e5
+run_name: RUN_experiment_1
+run_uuid: a186113b583f45258ffcd17351c889e5
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1727091108326
+status: 3
+tags: []
+user_id: alena
