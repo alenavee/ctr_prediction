@@ -1,7 +1,56 @@
 CTR MLOPS pipeline
 ==============================
 
-A short description of the project.
+Пайплайн по предсказанию кликов пользователя для мобильной Web рекламы. За основу взяты данные соревнования Kaggle Avazu CTR Prediction.
+
+**Структура пайплайна**
+
+make_dataset: чтение данных
+
+features/build_transformers: обработки признаков, в которую входят
+
+DeviceCountTransformer, UserCountTransformer: трансформы для расчета количества рекламных объявлений на пользователя или девайс
+
+CtrTransformer: трансформы, с помощью которых кодируем категориальные переменные средним CTR
+
+model_fit_predict: обучаем классическую модель Catboost `а на предсказание вероятности клика для данной сессии пользователя.
+
+**Установка**
+```
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+**Обучение модели**
+```
+python ctr_project/train_pipeline.py --configs configs/train_config.yaml
+```
+**Юнит тестирование**
+```
+pytest
+```
+**Tools**
+
+DVC : для версионирования данных и артефактов при помощи Git синтаксиса
+
+MLFlow: для логирования экспериментов над моделью.
+
+Удаленное S3 объектное хранилище в VK Cloud
+
+REST сервис в FastAPI
+
+Grafana: инструмент для визуализации метрик
+
+Prometheus: система мониторинга которая собирает метрики у приложения и передает их в Grafana
+
+
+**Метрики**
+
+predict_proba: значение вероятности клика с каждого предсказания
+
+predicted_proba_hist: гистограмма вероятностей
+
+http_predict_request_total: счетчик входящих запросов на endpoint /predict
 
 Project Organization
 ------------
