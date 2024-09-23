@@ -9,12 +9,14 @@ from src.entities.split_params import SplittingParams
 from src.entities.feature_params import FeatureParams
 from src.entities.train_params import TrainingParams
 
+
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler(sys.stdout)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 
-PATH = "configs/train_config.yaml"
+
+PATH = "../configs/train_config.yaml"
 
 
 @dataclass()
@@ -30,6 +32,8 @@ class TrainingPipelineParams:
     input_preprocessed_data_path: str = field(
         default="../data/raw/sampled_preprocessed_train_50k.csv"
     )
+    use_mlflow: bool = True
+    mlflow_experiment: str = "inference_demo"
 
 
 TrainingPipelineParamsSchema = class_schema(TrainingPipelineParams)
@@ -44,8 +48,4 @@ def read_training_pipeline_params(path: str) -> TrainingPipelineParams:
 
 
 if __name__ == "__main__":
-    params = read_training_pipeline_params(PATH)
-
-    logger.debug(f"params: {params}")
-
-    logger.debug(params.splitting_params.val_size)
+    read_training_pipeline_params(PATH)

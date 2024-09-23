@@ -25,7 +25,7 @@ from src.models.model_fit_predict import (
     evaluate_model,
     serialize_model,
 )
-
+from src.models.repro_experiments import log_experiment_mlflow
 
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler(sys.stdout)
@@ -33,30 +33,32 @@ logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 
 
-def train_pipline(config_path: str):
-    training_pipeline_params: TrainingPipelineParams = read_training_pipeline_params(config_path)
+def train_pipeline(config_path: str):
+    training_pipeline_params: TrainingPipelineParams = read_training_pipeline_params(
+        config_path
+    )
 
     data: pd.DataFrame = read_data(training_pipeline_params.input_data_path)
     data["hour"] = data.hour.apply(lambda val: datetime.strptime(str(val), "%y%m%d%H"))
-    logger.debug(f"Start train pipline with params {training_pipeline_params}")
-    logger.debug(f"data: {data.shape} \n {data.info()} \n {data.nunique()}")
+    logger.debug(f"Start train pipeline with params {training_pipeline_params}")
+    logger.debug(f"data:  {data.shape} \n {data.info()} \n {data.nunique()}")
 
     transformer = build_transformer()
     processed_data = process_count_features(
         transformer, data, training_pipeline_params.feature_params
     )
     logger.debug(
-        f"processed_data: {processed_data.shape} \n {processed_data.info()}"
+        f"processed_data:  {processed_data.shape} \n {processed_data.info()} "
         f"\n {processed_data.nunique()} \n {processed_data[training_pipeline_params.feature_params.count_features]}"
     )
 
     train_df, val_df = split_train_val_data(
         processed_data, training_pipeline_params.splitting_params
     )
-    logger.debug(f"train_df.shape is {train_df.shape}")
-    logger.debug(f"val_df shape is {val_df.shape}")
+    logger.debug(f"train_df.shape is  {train_df.shape}")
+    logger.debug(f"val_df.shape is  {val_df.shape}")
 
-    #check distributions of targets between train and test
+    # check distributions of targets between train and test
     logger.info(f"train trg: \n {train_df['click'].value_counts() / train_df.shape[0]}")
     logger.info(f"test trg: \n {val_df['click'].value_counts() / val_df.shape[0]}")
 
@@ -78,13 +80,23 @@ def train_pipline(config_path: str):
         f"val_features:  {val_features.shape} \n {val_features.info()} \n {val_features.nunique()}"
     )
 
-    model = train_model(
-        train_features, train_target, training_pipeline_params.train_params
-    )
+    if training_pipeline_params.use_mlflow:
+        model, metrics = log_experiment_mlflow(
+            run_name="experiment_1",
+            train_features=train_features,
+            train_target=train_target,
+            val_features=val_features,
+            val_target=val_target,
+            training_pipeline_params=training_pipeline_params,
+        )
+    else:
+        model = train_model(
+            train_features, train_target, training_pipeline_params.train_params
+        )
 
-    predicted_proba, preds = predict_model(model, val_features)
-    metrics = evaluate_model(predicted_proba, preds, val_target)
-    logger.debug(f"preds/ targets shapes:  {(preds.shape, val_target.shape)}")
+        predicted_proba, preds = predict_model(model, val_features)
+        metrics = evaluate_model(predicted_proba, preds, val_target)
+        logger.debug(f"preds/ targets shapes:  {(preds.shape, val_target.shape)}")
 
     # dump metrics to json
     with open(training_pipeline_params.metric_path, "w") as metric_file:
@@ -98,9 +110,8 @@ def train_pipline(config_path: str):
     )
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="configs/train_config.yaml")
     args = parser.parse_args()
-    train_pipline(args.config)
+    train_pipeline(args.config)
